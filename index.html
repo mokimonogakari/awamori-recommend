@@ -357,252 +357,30 @@
 
 <script>
 // ============================================================
-// TEST DATA DEFINITION
+// DATA LOADING
 // ============================================================
 
-const awamoriData = [
-  {
-    id: 1,
-    name: "残波（白）",
-    brewery: "比嘉酒造",
-    degree: 25,
-    type: "一般酒",
-    taste: {
-      richness: 2,
-      sweetness: 3,
-    },
-    quadrant: "light-sweet",
-    flavorProfile: "フルーティーで透明感のある味わい。泡盛初心者に最適",
-    pairings: ["itamemono", "agemono", "okinawa", "izakaya"],
-    pairingDescription: "ゴーヤーチャンプルーやもずく天ぷらなど、さっぱりした沖縄料理と好相性",
-    recommendedDrink: "炭酸割り・シークヮーサー割り",
-    similarDrinks: ["beer", "chuhai", "cocktail"],
-  },
-  {
-    id: 2,
-    name: "残波（黒）",
-    brewery: "比嘉酒造",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 4, sweetness: 2 },
-    quadrant: "rich-dry",
-    flavorProfile: "力強いコクとキレの良さ。伝統的な泡盛の味わい",
-    pairings: ["nikomi", "steak", "okinawa", "nabe"],
-    pairingDescription: "ラフテーやソーキなどの豚肉煮込み料理と抜群の相性",
-    recommendedDrink: "ロック・水割り",
-    similarDrinks: ["shochu", "whisky"],
-  },
-  {
-    id: 3,
-    name: "菊之露ブラウン",
-    brewery: "菊之露酒造",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 3, sweetness: 3 },
-    quadrant: "rich-sweet",
-    flavorProfile: "独特の風味と甘みのバランス。スタンダードな定番銘柄",
-    pairings: ["nikomi", "okinawa", "izakaya", "nabe"],
-    pairingDescription: "沖縄料理全般に合う万能な一本。足てびちやソーキと特に好相性",
-    recommendedDrink: "水割り・お湯割り",
-    similarDrinks: ["sake", "shochu"],
-  },
-  {
-    id: 4,
-    name: "瑞泉",
-    brewery: "瑞泉酒造",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 3, sweetness: 2 },
-    quadrant: "light-dry",
-    flavorProfile: "首里の伝統を受け継ぐキレのある味わい。食中酒に最適",
-    pairings: ["kaisen", "izakaya", "okinawa", "itamemono"],
-    pairingDescription: "海ぶどうやもずく酢、刺身など海鮮系との相性が抜群",
-    recommendedDrink: "水割り・シークヮーサー割り",
-    similarDrinks: ["sake", "beer"],
-  },
-  {
-    id: 5,
-    name: "久米島の久米仙",
-    brewery: "久米島の久米仙",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 2, sweetness: 3 },
-    quadrant: "light-sweet",
-    flavorProfile: "柔らかな口当たりと湧水由来の清涼感",
-    pairings: ["kaisen", "itamemono", "izakaya", "cheese"],
-    pairingDescription: "刺身やソーメンチャンプルーなど、あっさり系の料理に合う",
-    recommendedDrink: "水割り・炭酸割り",
-    similarDrinks: ["sake", "wine", "beer"],
-  },
-  {
-    id: 6,
-    name: "暖流",
-    brewery: "神村酒造",
-    degree: 30,
-    type: "樽貯蔵",
-    taste: { richness: 4, sweetness: 4 },
-    quadrant: "rich-sweet",
-    flavorProfile: "オーク樽由来のバニラ香と琥珀色。ウイスキーのような風格",
-    pairings: ["steak", "cheese", "italian", "dessert"],
-    pairingDescription: "ステーキ、燻製料理、ローストビーフと最高の組み合わせ。暖ボール（ハイボール）が人気",
-    recommendedDrink: "炭酸割り（暖ボール）・ロック",
-    similarDrinks: ["whisky", "highball"],
-  },
-  {
-    id: 7,
-    name: "菊之露VIPゴールド",
-    brewery: "菊之露酒造",
-    degree: 30,
-    type: "古酒",
-    taste: { richness: 4, sweetness: 4 },
-    quadrant: "rich-sweet",
-    flavorProfile: "洗練された甘みとプレミアム感。長期熟成の深い味わい",
-    pairings: ["nikomi", "nabe", "cheese", "dessert"],
-    pairingDescription: "ラフテーなど濃厚な煮込み料理と古酒の熟成香が同調する",
-    recommendedDrink: "ロック・ストレート",
-    similarDrinks: ["whisky", "wine"],
-  },
-  {
-    id: 8,
-    name: "松藤（荒濾過）",
-    brewery: "崎山酒造廠",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 5, sweetness: 2 },
-    quadrant: "rich-dry",
-    flavorProfile: "老麹由来の深いコクとまろやかさ。荒濾過のパンチある味わい",
-    pairings: ["italian", "spicy", "steak", "okinawa"],
-    pairingDescription: "グラタンやオイル系料理、スパイシーな料理のオイルの重さを流す",
-    recommendedDrink: "ロック・水割り",
-    similarDrinks: ["shochu", "whisky"],
-  },
-  {
-    id: 9,
-    name: "海人",
-    brewery: "まさひろ酒造",
-    degree: 30,
-    type: "一般酒",
-    taste: { richness: 2, sweetness: 2 },
-    quadrant: "light-dry",
-    flavorProfile: "スッキリとした後味と華やかな香り",
-    pairings: ["kaisen", "agemono", "izakaya", "itamemono"],
-    pairingDescription: "グルクン唐揚げや海鮮料理とスッキリ楽しめる",
-    recommendedDrink: "炭酸割り・水割り",
-    similarDrinks: ["beer", "highball", "chuhai"],
-  },
-  {
-    id: 10,
-    name: "琉球王朝",
-    brewery: "多良川",
-    degree: 30,
-    type: "古酒",
-    taste: { richness: 3, sweetness: 4 },
-    quadrant: "rich-sweet",
-    flavorProfile: "バランスの取れた香りとコク。古酒ならではのまろやかさ",
-    pairings: ["nikomi", "okinawa", "nabe", "cheese"],
-    pairingDescription: "あぐー豚のしゃぶしゃぶや沖縄の伝統料理との調和",
-    recommendedDrink: "ロック・水割り",
-    similarDrinks: ["sake", "wine", "whisky"],
-  },
-  {
-    id: 11,
-    name: "芳醇浪漫 守禮",
-    brewery: "神谷酒造所",
-    degree: 35,
-    type: "一般酒",
-    taste: { richness: 5, sweetness: 3 },
-    quadrant: "rich-dry",
-    flavorProfile: "選び抜かれた酵母による豊かな香り。味のしっかりした料理と調和",
-    pairings: ["nikomi", "okinawa", "steak", "nabe"],
-    pairingDescription: "ラフテーや足てびち等の煮物料理に最適。豊かな香りが料理を引き立てる",
-    recommendedDrink: "ロック",
-    similarDrinks: ["shochu", "whisky"],
-  },
-  {
-    id: 12,
-    name: "伊是名島 5年古酒",
-    brewery: "伊是名酒造所",
-    degree: 30,
-    type: "古酒",
-    taste: { richness: 3, sweetness: 4 },
-    quadrant: "rich-sweet",
-    flavorProfile: "熟成されたまろやかなのど越し。深みのある味わい",
-    pairings: ["kaisen", "okinawa", "izakaya", "cheese"],
-    pairingDescription: "温かい出汁で食べるつけもずくなど、繊細な味付けの料理と響き合う",
-    recommendedDrink: "水割り・ストレート",
-    similarDrinks: ["sake", "wine"],
-  },
-  {
-    id: 13,
-    name: "まさひろオキナワジン",
-    brewery: "まさひろ酒造",
-    degree: 47,
-    type: "ジン（泡盛ベース）",
-    taste: { richness: 3, sweetness: 1 },
-    quadrant: "light-dry",
-    flavorProfile: "泡盛ベースのクラフトジン。ボタニカルの爽快な香り",
-    pairings: ["spicy", "italian", "cheese", "kaisen"],
-    pairingDescription: "スパイスカレーやタコスなどスパイシー料理と「琉球メキシカン」の融合",
-    recommendedDrink: "ジントニック・炭酸割り",
-    similarDrinks: ["cocktail", "highball", "beer"],
-  },
-  {
-    id: 14,
-    name: "くら",
-    brewery: "ヘリオス酒造",
-    degree: 25,
-    type: "樽貯蔵",
-    taste: { richness: 3, sweetness: 4 },
-    quadrant: "light-sweet",
-    flavorProfile: "樫樽熟成の琥珀色。ウイスキーのようなバニラ香だが飲みやすい",
-    pairings: ["steak", "dessert", "cheese", "italian"],
-    pairingDescription: "グリル料理やチョコレートデザートと相性抜群。くらハイボールが初心者に人気",
-    recommendedDrink: "炭酸割り（くらハイボール）・ロック",
-    similarDrinks: ["whisky", "highball", "cocktail"],
-  },
-  {
-    id: 15,
-    name: "OKINAWA ISLAND BLUE",
-    brewery: "久米仙酒造",
-    degree: 43,
-    type: "古酒",
-    taste: { richness: 4, sweetness: 3 },
-    quadrant: "rich-dry",
-    flavorProfile: "カクテルベースとして最適。クラシックカクテルのアレンジに",
-    pairings: ["cheese", "dessert", "steak", "italian"],
-    pairingDescription: "ゴッドファーザー風カクテルでデザートと。オールドファッションドでステーキと",
-    recommendedDrink: "カクテルベース・ロック",
-    similarDrinks: ["whisky", "cocktail"],
-  },
-];
+let awamoriData = [];
+let foodCategories = {};
+let drinkMapping = {};
 
-// Food category definitions
-const foodCategories = {
-  nikomi: { name: "煮込み料理", examples: "ラフテー、足てびち、ソーキ" },
-  agemono: { name: "揚げ物", examples: "もずく天ぷら、グルクン唐揚げ" },
-  itamemono: { name: "炒め物", examples: "ゴーヤーチャンプルー、ソーメンチャンプルー" },
-  nabe: { name: "鍋料理", examples: "あぐー豚しゃぶしゃぶ" },
-  kaisen: { name: "海鮮・刺身", examples: "海ぶどう、もずく酢、刺身" },
-  steak: { name: "ステーキ・肉", examples: "ステーキ、ローストビーフ、燻製" },
-  italian: { name: "イタリアン", examples: "パスタ、ピザ、マリネ" },
-  spicy: { name: "スパイシー料理", examples: "カレー、タコス、メキシカン" },
-  cheese: { name: "チーズ・前菜", examples: "チーズ、生ハム、前菜盛り合わせ" },
-  dessert: { name: "デザート", examples: "チョコレート、ナッツ、ドライフルーツ" },
-  okinawa: { name: "沖縄料理", examples: "ラフテー、チャンプルー、島豆腐" },
-  izakaya: { name: "居酒屋おつまみ", examples: "島らっきょう、もずく、海ぶどう" },
-};
-
-// Drink mapping for recommendations
-const drinkMapping = {
-  beer: "ビールが好きな方には、スッキリ軽やかな泡盛がおすすめ",
-  sake: "日本酒が好きな方には、まろやかで食中酒向きの泡盛を",
-  shochu: "焼酎好きの方なら、本格派の泡盛をそのまま楽しめます",
-  wine: "ワイン好きの方には、熟成古酒の複雑な味わいがおすすめ",
-  whisky: "ウイスキー好きの方には、樽貯蔵の泡盛がぴったり",
-  cocktail: "カクテル好きの方には、泡盛ベースのアレンジカクテルを",
-  highball: "ハイボール好きの方には、暖ボールやくらハイボールを",
-  chuhai: "酎ハイ好きの方には、炭酸割りやシークヮーサー割りを",
-};
+// Load data from external JSON file
+async function loadData() {
+  try {
+    const response = await fetch('awamori-data.json');
+    if (!response.ok) {
+      throw new Error('データの読み込みに失敗しました');
+    }
+    const data = await response.json();
+    awamoriData = data.awamoriData;
+    foodCategories = data.foodCategories;
+    drinkMapping = data.drinkMapping;
+    console.log('✅ データ読み込み完了:', awamoriData.length + '件の泡盛');
+  } catch (error) {
+    console.error('❌ データ読み込みエラー:', error);
+    alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
+  }
+}
 
 // ============================================================
 // APP LOGIC
@@ -611,6 +389,11 @@ const drinkMapping = {
 let selectedQuadrant = null;
 let selectedDrinks = new Set();
 let selectedFoods = new Set();
+
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadData();
+});
 
 // Tab switching
 document.querySelectorAll('.tab-btn').forEach(btn => {
