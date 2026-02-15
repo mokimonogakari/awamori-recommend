@@ -30,7 +30,7 @@ function App() {
 
   // Load data
   useEffect(() => {
-    fetch('/awamori-recommend/awamori-data.json')
+    fetch(`${import.meta.env.BASE_URL}awamori-data.json`)
       .then(res => res.json())
       .then(data => {
         setAwamoriData(data.awamoriData)

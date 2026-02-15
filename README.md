@@ -189,9 +189,9 @@ npm install
 # 開発サーバーを起動
 npm run dev
 
-# ブラウザでアクセス（通常 http://localhost:5173）
+# ブラウザでアクセス
 ```
-
+https://mokimonogakari.github.io/awamori-recommend/
 ### ビルド
 
 ```bash
