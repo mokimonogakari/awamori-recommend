@@ -49,9 +49,13 @@
 - **デザイン**: レスポンシブデザイン（モバイルファースト）
 - **UI/UX**: タブナビゲーション、インタラクティブなSVG味わいマップ
 - **スタイル**: CSS変数を使用したカスタムデザインシステム
+- **データ読み込み**: Fetch APIによる非同期JSONデータ読み込み
 
-### データベース
-- **形式**: JavaScriptオブジェクトとして15種類の泡盛データを保持
+### データ管理
+- **形式**: 外部JSONファイル（`awamori-data.json`）で15種類の泡盛データを管理
+- **ファイル構成**:
+  - `index.html`: アプリケーション本体
+  - `awamori-data.json`: 泡盛データ、料理カテゴリー、お酒マッピング
 - **データ構造**:
   ```javascript
   {
@@ -139,11 +143,42 @@
 - **ライセンス**: 未指定
 - **依存関係**: なし（Vanilla JavaScript）
 
+## データの管理
+
+### データファイルの編集
+泡盛データは `awamori-data.json` で管理されています。新しい泡盛を追加する場合：
+
+1. `awamori-data.json` を開く
+2. `awamoriData` 配列に新しいオブジェクトを追加
+3. 必須フィールド: `id`, `name`, `brewery`, `degree`, `type`, `taste`, `quadrant`, `flavorProfile`, `pairings`, `pairingDescription`, `recommendedDrink`, `similarDrinks`
+4. ファイルを保存してブラウザで動作確認
+
+### データ構造の例
+```json
+{
+  "id": 16,
+  "name": "新しい泡盛",
+  "brewery": "酒造所名",
+  "degree": 30,
+  "type": "一般酒",
+  "taste": {
+    "richness": 3,
+    "sweetness": 3
+  },
+  "quadrant": "rich-sweet",
+  "flavorProfile": "味わいの説明",
+  "pairings": ["nikomi", "okinawa"],
+  "pairingDescription": "料理との相性の説明",
+  "recommendedDrink": "おすすめの飲み方",
+  "similarDrinks": ["sake", "shochu"]
+}
+```
+
 ## ローカル開発
 
 ```bash
 # リポジトリをクローン
-git clone <repository-url>
+git clone https://github.com/mokimonogakari/awamori-recommend.git
 
 # ディレクトリに移動
 cd awamori-recommend
@@ -154,6 +189,8 @@ python -m http.server 8000
 # ブラウザでアクセス
 open http://localhost:8000
 ```
+
+**注意**: JSONファイルを読み込むため、必ずローカルサーバー経由でアクセスしてください。`file://` プロトコルではCORSエラーが発生します。
 
 ## 今後の拡張可能性
 
