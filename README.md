@@ -1,6 +1,6 @@
 # 泡盛レコメンド
 
-あなたにぴったりの泡盛と料理の組み合わせを見つけるウェブアプリケーション
+あなたにぴったりの泡盛と料理の組み合わせを見つけるReactアプリケーション
 
 ## 概要
 
@@ -20,18 +20,11 @@
 
 ### 2. 料理で探す
 12種類の料理カテゴリーから選択：
-- 煮込み料理（ラフテー、足てびち、ソーキ）
-- 揚げ物（もずく天ぷら、グルクン唐揚げ）
-- 炒め物（ゴーヤーチャンプルー）
-- 鍋料理（あぐー豚しゃぶしゃぶ）
-- 海鮮・刺身
-- ステーキ・肉料理
-- イタリアン
-- スパイシー料理
-- チーズ・前菜
-- デザート
-- 沖縄料理
-- 居酒屋おつまみ
+- 煮込み料理、揚げ物、炒め物、鍋料理
+- 海鮮・刺身、ステーキ・肉料理
+- イタリアン、スパイシー料理
+- チーズ・前菜、デザート
+- 沖縄料理、居酒屋おつまみ
 
 ### 3. 詳細な泡盛情報
 各泡盛の推薦結果には以下の情報を表示：
@@ -45,17 +38,20 @@
 ## 技術仕様
 
 ### フロントエンド
-- **言語**: HTML5、CSS3、Vanilla JavaScript
+- **フレームワーク**: React 19 + Vite 7
+- **言語**: JavaScript (JSX)
 - **デザイン**: レスポンシブデザイン（モバイルファースト）
 - **UI/UX**: タブナビゲーション、インタラクティブなSVG味わいマップ
 - **スタイル**: CSS変数を使用したカスタムデザインシステム
-- **データ読み込み**: Fetch APIによる非同期JSONデータ読み込み
+- **状態管理**: React Hooks (useState, useEffect)
+- **ビルドツール**: Vite (高速開発サーバー、最適化されたビルド)
 
 ### データ管理
-- **形式**: 外部JSONファイル（`awamori-data.json`）で15種類の泡盛データを管理
+- **形式**: 外部JSONファイル（`public/awamori-data.json`）で15種類の泡盛データを管理
 - **ファイル構成**:
-  - `index.html`: アプリケーション本体
-  - `awamori-data.json`: 泡盛データ、料理カテゴリー、お酒マッピング
+  - `src/App.jsx`: メインアプリケーションコンポーネント
+  - `src/App.css`: アプリケーションスタイル
+  - `public/awamori-data.json`: 泡盛データ、料理カテゴリー、お酒マッピング
 - **データ構造**:
   ```javascript
   {
@@ -94,9 +90,10 @@
 このアプリケーションはGitHub Pagesにデプロイされています。
 
 ### デプロイ手順
-1. GitHubリポジトリにコードをプッシュ
-2. リポジトリ設定 > Pages > Source を `main` ブランチに設定
-3. デプロイ完了後、提供されるURLでアクセス可能
+```bash
+# ビルド＆デプロイ
+npm run deploy
+```
 
 ## 収録泡盛一覧
 
@@ -141,17 +138,20 @@
 
 - **プロジェクト**: ハッカソン 2026 プロトタイプ
 - **ライセンス**: 未指定
-- **依存関係**: なし（Vanilla JavaScript）
+- **主な依存関係**:
+  - React 19.2.0
+  - Vite 7.3.1
+  - gh-pages (デプロイ用)
 
 ## データの管理
 
 ### データファイルの編集
-泡盛データは `awamori-data.json` で管理されています。新しい泡盛を追加する場合：
+泡盛データは `public/awamori-data.json` で管理されています。新しい泡盛を追加する場合：
 
-1. `awamori-data.json` を開く
+1. `public/awamori-data.json` を開く
 2. `awamoriData` 配列に新しいオブジェクトを追加
 3. 必須フィールド: `id`, `name`, `brewery`, `degree`, `type`, `taste`, `quadrant`, `flavorProfile`, `pairings`, `pairingDescription`, `recommendedDrink`, `similarDrinks`
-4. ファイルを保存してブラウザで動作確認
+4. ファイルを保存して開発サーバーで動作確認（`npm run dev`）
 
 ### データ構造の例
 ```json
@@ -183,14 +183,31 @@ git clone https://github.com/mokimonogakari/awamori-recommend.git
 # ディレクトリに移動
 cd awamori-recommend
 
-# ローカルサーバーで起動（例：Python）
-python -m http.server 8000
+# 依存関係をインストール
+npm install
 
-# ブラウザでアクセス
-open http://localhost:8000
+# 開発サーバーを起動
+npm run dev
+
+# ブラウザでアクセス（通常 http://localhost:5173）
 ```
 
-**注意**: JSONファイルを読み込むため、必ずローカルサーバー経由でアクセスしてください。`file://` プロトコルではCORSエラーが発生します。
+### ビルド
+
+```bash
+# プロダクションビルド
+npm run build
+
+# ビルド結果をプレビュー
+npm run preview
+```
+
+### デプロイ（GitHub Pages）
+
+```bash
+# 自動ビルド＆デプロイ
+npm run deploy
+```
 
 ## 今後の拡張可能性
 
