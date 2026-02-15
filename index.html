@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>泡盛レコメンド - あなたにぴったりの一杯を</title>
+<style>
+  :root {
+    --primary: #1a3a5c;
+    --accent: #c5963a;
+    --accent-light: #f5e6c8;
+    --bg: #faf8f5;
+    --card-bg: #ffffff;
+    --text: #2c2c2c;
+    --text-light: #6b6b6b;
+    --border: #e0ddd8;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ===== Header ===== */
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, #2a5a8c 100%);
+    color: #fff;
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+  }
+  header h1 {
+    font-size: 1.8rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  header p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+
+  /* ===== Navigation Tabs ===== */
+  .tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tab-btn {
+    flex: 1;
+    max-width: 220px;
+    padding: 1rem 0.5rem;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn:hover { color: var(--accent); }
+
+  /* ===== Tab Content ===== */
+  .tab-content { display: none; padding: 1.5rem 1rem 3rem; max-width: 680px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ===== Section Titles ===== */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-left: 0.8rem;
+    border-left: 4px solid var(--accent);
+  }
+
+  /* ===== Taste Map ===== */
+  .taste-map-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+    aspect-ratio: 1;
+  }
+  .taste-map-svg {
+    width: 100%;
+    height: 100%;
+  }
+  .taste-quadrant {
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .taste-quadrant:hover { opacity: 0.85; }
+  .taste-quadrant.selected { stroke: var(--accent); stroke-width: 3; }
+
+  .taste-axis-label {
+    font-size: 12px;
+    fill: var(--text-light);
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .taste-quadrant-label {
+    font-size: 13px;
+    fill: #fff;
+    font-weight: 700;
+    pointer-events: none;
+    text-anchor: middle;
+  }
+
+  /* ===== Drink Preference ===== */
+  .drink-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+  .drink-chip {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+  }
+  .drink-chip:hover { border-color: var(--accent); }
+  .drink-chip.selected {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* ===== Food Category ===== */
+  .food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+  }
+  .food-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .food-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .food-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .food-card .emoji { font-size: 2rem; margin-bottom: 0.3rem; }
+  .food-card .label { font-size: 0.85rem; font-weight: 600; }
+
+  /* ===== Result Cards ===== */
+  .results-area { margin-top: 1.5rem; }
+  .result-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.2rem 1.2rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--accent);
+  }
+  .result-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+    color: var(--primary);
+  }
+  .result-card .brewery {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.6rem;
+  }
+  .result-card .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .tag-degree { background: #e8f0fe; color: #1a56db; }
+  .tag-type { background: #fef3c7; color: #92400e; }
+  .tag-taste { background: #ecfdf5; color: #065f46; }
+  .result-card .description {
+    font-size: 0.88rem;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+  .result-card .pairing {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .pairing-label {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+  .how-to-drink {
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-light);
+  }
+  .how-to-drink strong { color: var(--text); }
+
+  /* ===== CTA Button ===== */
+  .cta-btn {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 1.5rem auto 0;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, var(--accent), #d4a84a);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(197,150,58,0.35);
+  }
+  .cta-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ===== Empty State ===== */
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 480px) {
+    header h1 { font-size: 1.4rem; }
+    .food-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>泡盛レコメンド</h1>
+  <p>あなたにぴったりの泡盛と料理の組み合わせを見つけよう</p>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="taste">好みで探す</button>
+  <button class="tab-btn" data-tab="food">料理で探す</button>
+</nav>
+
+
+<!-- ===== Tab 2: 料理で探す ===== -->
+<div id="tab-food" class="tab-content">
+  <h2 class="section-title">好きな料理カテゴリーを選んでください</h2>
+  <div class="food-grid" id="food-grid">
+    <div class="food-card" data-food="nikomi">
+      <div class="emoji">🍖</div>
+      <div class="label">煮込み料理</div>
+    </div>
+    <div class="food-card" data-food="agemono">
+      <div class="emoji">🍤</div>
+      <div class="label">揚げ物</div>
+    </div>
+    <div class="food-card" data-food="itamemono">
+      <div class="emoji">🥘</div>
+      <div class="label">炒め物</div>
+    </div>
+    <div class="food-card" data-food="nabe">
+      <div class="emoji">♨️</div>
+      <div class="label">鍋料理</div>
+    </div>
+    <div class="food-card" data-food="kaisen">
+      <div class="emoji">🐟</div>
+      <div class="label">海鮮・刺身</div>
+    </div>
+    <div class="food-card" data-food="steak">
+      <div class="emoji">🥩</div>
+      <div class="label">ステーキ・肉</div>
+    </div>
+    <div class="food-card" data-food="italian">
+      <div class="emoji">🍝</div>
+      <div class="label">イタリアン</div>
+    </div>
+    <div class="food-card" data-food="spicy">
+      <div class="emoji">🌶️</div>
+      <div class="label">スパイシー料理</div>
+    </div>
+    <div class="food-card" data-food="cheese">
+      <div class="emoji">🧀</div>
+      <div class="label">チーズ・前菜</div>
+    </div>
+    <div class="food-card" data-food="dessert">
+      <div class="emoji">🍰</div>
+      <div class="label">デザート</div>
+    </div>
+    <div class="food-card" data-food="okinawa">
+      <div class="emoji">🌺</div>
+      <div class="label">沖縄料理</div>
+    </div>
+    <div class="food-card" data-food="izakaya">
+      <div class="emoji">🏮</div>
+      <div class="label">居酒屋おつまみ</div>
+    </div>
+  </div>
+
+  <button class="cta-btn" id="food-search-btn" disabled>おすすめの泡盛を探す</button>
+
+  <div class="results-area" id="food-results">
+    <div class="empty-state">料理カテゴリーを選んでください</div>
+  </div>
+</div>
+
+<footer>
+  泡盛レコメンド｜ハッカソン 2026 プロトタイプ
+</footer>
+
+<script>
+// ============================================================
+// TEST DATA DEFINITION
+// ============================================================
+
+const awamoriData = [
+  {
+    id: 1,
+    name: "残波（白）",
+    brewery: "比嘉酒造",
+    degree: 25,
+    type: "一般酒",
+    taste: {
+      richness: 2,
+      sweetness: 3,
+    },
+    quadrant: "light-sweet",
+    flavorProfile: "フルーティーで透明感のある味わい。泡盛初心者に最適",
+    pairings: ["itamemono", "agemono", "okinawa", "izakaya"],
+    pairingDescription: "ゴーヤーチャンプルーやもずく天ぷらなど、さっぱりした沖縄料理と好相性",
+    recommendedDrink: "炭酸割り・シークヮーサー割り",
+    similarDrinks: ["beer", "chuhai", "cocktail"],
+  },
+  {
+    id: 2,
+    name: "残波（黒）",
+    brewery: "比嘉酒造",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 4, sweetness: 2 },
+    quadrant: "rich-dry",
+    flavorProfile: "力強いコクとキレの良さ。伝統的な泡盛の味わい",
+    pairings: ["nikomi", "steak", "okinawa", "nabe"],
+    pairingDescription: "ラフテーやソーキなどの豚肉煮込み料理と抜群の相性",
+    recommendedDrink: "ロック・水割り",
+    similarDrinks: ["shochu", "whisky"],
+  },
+  {
+    id: 3,
+    name: "菊之露ブラウン",
+    brewery: "菊之露酒造",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 3, sweetness: 3 },
+    quadrant: "rich-sweet",
+    flavorProfile: "独特の風味と甘みのバランス。スタンダードな定番銘柄",
+    pairings: ["nikomi", "okinawa", "izakaya", "nabe"],
+    pairingDescription: "沖縄料理全般に合う万能な一本。足てびちやソーキと特に好相性",
+    recommendedDrink: "水割り・お湯割り",
+    similarDrinks: ["sake", "shochu"],
+  },
+  {
+    id: 4,
+    name: "瑞泉",
+    brewery: "瑞泉酒造",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 3, sweetness: 2 },
+    quadrant: "light-dry",
+    flavorProfile: "首里の伝統を受け継ぐキレのある味わい。食中酒に最適",
+    pairings: ["kaisen", "izakaya", "okinawa", "itamemono"],
+    pairingDescription: "海ぶどうやもずく酢、刺身など海鮮系との相性が抜群",
+    recommendedDrink: "水割り・シークヮーサー割り",
+    similarDrinks: ["sake", "beer"],
+  },
+  {
+    id: 5,
+    name: "久米島の久米仙",
+    brewery: "久米島の久米仙",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 2, sweetness: 3 },
+    quadrant: "light-sweet",
+    flavorProfile: "柔らかな口当たりと湧水由来の清涼感",
+    pairings: ["kaisen", "itamemono", "izakaya", "cheese"],
+    pairingDescription: "刺身やソーメンチャンプルーなど、あっさり系の料理に合う",
+    recommendedDrink: "水割り・炭酸割り",
+    similarDrinks: ["sake", "wine", "beer"],
+  },
+  {
+    id: 6,
+    name: "暖流",
+    brewery: "神村酒造",
+    degree: 30,
+    type: "樽貯蔵",
+    taste: { richness: 4, sweetness: 4 },
+    quadrant: "rich-sweet",
+    flavorProfile: "オーク樽由来のバニラ香と琥珀色。ウイスキーのような風格",
+    pairings: ["steak", "cheese", "italian", "dessert"],
+    pairingDescription: "ステーキ、燻製料理、ローストビーフと最高の組み合わせ。暖ボール（ハイボール）が人気",
+    recommendedDrink: "炭酸割り（暖ボール）・ロック",
+    similarDrinks: ["whisky", "highball"],
+  },
+  {
+    id: 7,
+    name: "菊之露VIPゴールド",
+    brewery: "菊之露酒造",
+    degree: 30,
+    type: "古酒",
+    taste: { richness: 4, sweetness: 4 },
+    quadrant: "rich-sweet",
+    flavorProfile: "洗練された甘みとプレミアム感。長期熟成の深い味わい",
+    pairings: ["nikomi", "nabe", "cheese", "dessert"],
+    pairingDescription: "ラフテーなど濃厚な煮込み料理と古酒の熟成香が同調する",
+    recommendedDrink: "ロック・ストレート",
+    similarDrinks: ["whisky", "wine"],
+  },
+  {
+    id: 8,
+    name: "松藤（荒濾過）",
+    brewery: "崎山酒造廠",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 5, sweetness: 2 },
+    quadrant: "rich-dry",
+    flavorProfile: "老麹由来の深いコクとまろやかさ。荒濾過のパンチある味わい",
+    pairings: ["italian", "spicy", "steak", "okinawa"],
+    pairingDescription: "グラタンやオイル系料理、スパイシーな料理のオイルの重さを流す",
+    recommendedDrink: "ロック・水割り",
+    similarDrinks: ["shochu", "whisky"],
+  },
+  {
+    id: 9,
+    name: "海人",
+    brewery: "まさひろ酒造",
+    degree: 30,
+    type: "一般酒",
+    taste: { richness: 2, sweetness: 2 },
+    quadrant: "light-dry",
+    flavorProfile: "スッキリとした後味と華やかな香り",
+    pairings: ["kaisen", "agemono", "izakaya", "itamemono"],
+    pairingDescription: "グルクン唐揚げや海鮮料理とスッキリ楽しめる",
+    recommendedDrink: "炭酸割り・水割り",
+    similarDrinks: ["beer", "highball", "chuhai"],
+  },
+  {
+    id: 10,
+    name: "琉球王朝",
+    brewery: "多良川",
+    degree: 30,
+    type: "古酒",
+    taste: { richness: 3, sweetness: 4 },
+    quadrant: "rich-sweet",
+    flavorProfile: "バランスの取れた香りとコク。古酒ならではのまろやかさ",
+    pairings: ["nikomi", "okinawa", "nabe", "cheese"],
+    pairingDescription: "あぐー豚のしゃぶしゃぶや沖縄の伝統料理との調和",
+    recommendedDrink: "ロック・水割り",
+    similarDrinks: ["sake", "wine", "whisky"],
+  },
+  {
+    id: 11,
+    name: "芳醇浪漫 守禮",
+    brewery: "神谷酒造所",
+    degree: 35,
+    type: "一般酒",
+    taste: { richness: 5, sweetness: 3 },
+    quadrant: "rich-dry",
+    flavorProfile: "選び抜かれた酵母による豊かな香り。味のしっかりした料理と調和",
+    pairings: ["nikomi", "okinawa", "steak", "nabe"],
+    pairingDescription: "ラフテーや足てびち等の煮物料理に最適。豊かな香りが料理を引き立てる",
+    recommendedDrink: "ロック",
+    similarDrinks: ["shochu", "whisky"],
+  },
+  {
+    id: 12,
+    name: "伊是名島 5年古酒",
+    brewery: "伊是名酒造所",
+    degree: 30,
+    type: "古酒",
+    taste: { richness: 3, sweetness: 4 },
+    quadrant: "rich-sweet",
+    flavorProfile: "熟成されたまろやかなのど越し。深みのある味わい",
+    pairings: ["kaisen", "okinawa", "izakaya", "cheese"],
+    pairingDescription: "温かい出汁で食べるつけもずくなど、繊細な味付けの料理と響き合う",
+    recommendedDrink: "水割り・ストレート",
+    similarDrinks: ["sake", "wine"],
+  },
+  {
+    id: 13,
+    name: "まさひろオキナワジン",
+    brewery: "まさひろ酒造",
+    degree: 47,
+    type: "ジン（泡盛ベース）",
+    taste: { richness: 3, sweetness: 1 },
+    quadrant: "light-dry",
+    flavorProfile: "泡盛ベースのクラフトジン。ボタニカルの爽快な香り",
+    pairings: ["spicy", "italian", "cheese", "kaisen"],
+    pairingDescription: "スパイスカレーやタコスなどスパイシー料理と「琉球メキシカン」の融合",
+    recommendedDrink: "ジントニック・炭酸割り",
+    similarDrinks: ["cocktail", "highball", "beer"],
+  },
+  {
+    id: 14,
+    name: "くら",
+    brewery: "ヘリオス酒造",
+    degree: 25,
+    type: "樽貯蔵",
+    taste: { richness: 3, sweetness: 4 },
+    quadrant: "light-sweet",
+    flavorProfile: "樫樽熟成の琥珀色。ウイスキーのようなバニラ香だが飲みやすい",
+    pairings: ["steak", "dessert", "cheese", "italian"],
+    pairingDescription: "グリル料理やチョコレートデザートと相性抜群。くらハイボールが初心者に人気",
+    recommendedDrink: "炭酸割り（くらハイボール）・ロック",
+    similarDrinks: ["whisky", "highball", "cocktail"],
+  },
+  {
+    id: 15,
+    name: "OKINAWA ISLAND BLUE",
+    brewery: "久米仙酒造",
+    degree: 43,
+    type: "古酒",
+    taste: { richness: 4, sweetness: 3 },
+    quadrant: "rich-dry",
+    flavorProfile: "カクテルベースとして最適。クラシックカクテルのアレンジに",
+    pairings: ["cheese", "dessert", "steak", "italian"],
+    pairingDescription: "ゴッドファーザー風カクテルでデザートと。オールドファッションドでステーキと",
+    recommendedDrink: "カクテルベース・ロック",
+    similarDrinks: ["whisky", "cocktail"],
+  },
+];
+
+// Food category definitions
+const foodCategories = {
+  nikomi: { name: "煮込み料理", examples: "ラフテー、足てびち、ソーキ" },
+  agemono: { name: "揚げ物", examples: "もずく天ぷら、グルクン唐揚げ" },
+  itamemono: { name: "炒め物", examples: "ゴーヤーチャンプルー、ソーメンチャンプルー" },
+  nabe: { name: "鍋料理", examples: "あぐー豚しゃぶしゃぶ" },
+  kaisen: { name: "海鮮・刺身", examples: "海ぶどう、もずく酢、刺身" },
+  steak: { name: "ステーキ・肉", examples: "ステーキ、ローストビーフ、燻製" },
+  italian: { name: "イタリアン", examples: "パスタ、ピザ、マリネ" },
+  spicy: { name: "スパイシー料理", examples: "カレー、タコス、メキシカン" },
+  cheese: { name: "チーズ・前菜", examples: "チーズ、生ハム、前菜盛り合わせ" },
+  dessert: { name: "デザート", examples: "チョコレート、ナッツ、ドライフルーツ" },
+  okinawa: { name: "沖縄料理", examples: "ラフテー、チャンプルー、島豆腐" },
+  izakaya: { name: "居酒屋おつまみ", examples: "島らっきょう、もずく、海ぶどう" },
+};
+
+// Drink mapping for recommendations
+const drinkMapping = {
+  beer: "ビールが好きな方には、スッキリ軽やかな泡盛がおすすめ",
+  sake: "日本酒が好きな方には、まろやかで食中酒向きの泡盛を",
+  shochu: "焼酎好きの方なら、本格派の泡盛をそのまま楽しめます",
+  wine: "ワイン好きの方には、熟成古酒の複雑な味わいがおすすめ",
+  whisky: "ウイスキー好きの方には、樽貯蔵の泡盛がぴったり",
+  cocktail: "カクテル好きの方には、泡盛ベースのアレンジカクテルを",
+  highball: "ハイボール好きの方には、暖ボールやくらハイボールを",
+  chuhai: "酎ハイ好きの方には、炭酸割りやシークヮーサー割りを",
+};
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+
+let selectedQuadrant = null;
+let selectedDrinks = new Set();
+let selectedFoods = new Set();
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Quadrant selection
+document.querySelectorAll('.taste-quadrant').forEach(q => {
+  q.addEventListener('click', () => {
+    document.querySelectorAll('.taste-quadrant').forEach(el => el.classList.remove('selected'));
+    q.classList.add('selected');
+    selectedQuadrant = q.dataset.quadrant;
+    document.getElementById('taste-search-btn').disabled = false;
+  });
+});
+
+// Drink chip selection
+document.querySelectorAll('.drink-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('selected');
+    const drink = chip.dataset.drink;
+    if (selectedDrinks.has(drink)) {
+      selectedDrinks.delete(drink);
+    } else {
+      selectedDrinks.add(drink);
+    }
+  });
+});
+
+// Food card selection
+document.querySelectorAll('.food-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('selected');
+    const food = card.dataset.food;
+    if (selectedFoods.has(food)) {
+      selectedFoods.delete(food);
+    } else {
+      selectedFoods.add(food);
+    }
+    document.getElementById('food-search-btn').disabled = selectedFoods.size === 0;
+  });
+});
+
+// Taste-based search
+document.getElementById('taste-search-btn').addEventListener('click', () => {
+  if (!selectedQuadrant) return;
+
+  // Primary: match quadrant
+  let results = awamoriData.filter(a => a.quadrant === selectedQuadrant);
+
+  // Score by drink similarity
+  if (selectedDrinks.size > 0) {
+    results = results.map(a => {
+      const drinkScore = a.similarDrinks.filter(d => selectedDrinks.has(d)).length;
+      return { ...a, score: drinkScore };
+    }).sort((a, b) => b.score - a.score);
+  }
+
+  // If no results in exact quadrant, widen
+  if (results.length === 0) {
+    results = awamoriData.slice().sort((a, b) => {
+      const aMatch = a.similarDrinks.filter(d => selectedDrinks.has(d)).length;
+      const bMatch = b.similarDrinks.filter(d => selectedDrinks.has(d)).length;
+      return bMatch - aMatch;
+    }).slice(0, 3);
+  }
+
+  renderTasteResults(results);
+});
+
+// Food-based search
+document.getElementById('food-search-btn').addEventListener('click', () => {
+  if (selectedFoods.size === 0) return;
+
+  const foodArr = [...selectedFoods];
+  let scored = awamoriData.map(a => {
+    const matchCount = a.pairings.filter(p => foodArr.includes(p)).length;
+    return { ...a, score: matchCount };
+  }).filter(a => a.score > 0).sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) {
+    scored = awamoriData.slice(0, 3).map(a => ({ ...a, score: 0 }));
+  }
+
+  renderFoodResults(scored);
+});
+
+// ============================================================
+// RENDERING
+// ============================================================
+
+function renderTasteResults(results) {
+  const container = document.getElementById('taste-results');
+  if (results.length === 0) {
+    container.innerHTML = '<div class="empty-state">条件に合う泡盛が見つかりませんでした</div>';
+    return;
+  }
+
+  let drinkTip = '';
+  if (selectedDrinks.size > 0) {
+    const firstDrink = [...selectedDrinks][0];
+    drinkTip = `<div style="background:var(--accent-light);padding:0.8rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:0.88rem;">💡 ${drinkMapping[firstDrink]}</div>`;
+  }
+
+  container.innerHTML = drinkTip + results.map(a => `
+    <div class="result-card">
+      <h3>${a.name}</h3>
+      <div class="brewery">${a.brewery}</div>
+      <div class="tags">
+        <span class="tag tag-degree">${a.degree}度</span>
+        <span class="tag tag-type">${a.type}</span>
+      </div>
+      <div class="description">${a.flavorProfile}</div>
+      <div class="pairing">
+        <div class="pairing-label">おすすめの料理</div>
+        ${a.pairingDescription}
+      </div>
+      <div class="how-to-drink">
+        <strong>飲み方：</strong>${a.recommendedDrink}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFoodResults(results) {
+  const container = document.getElementById('food-results');
+  const selectedFoodNames = [...selectedFoods].map(f => foodCategories[f]?.name).filter(Boolean).join('、');
+
+  if (results.length === 0) {
+    container.innerHTML = '<div class="empty-state">条件に合う泡盛が見つかりませんでした</div>';
+    return;
+  }
+
+  const header = `<div style="background:var(--accent-light);padding:0.8rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:0.88rem;">🍽️ 「${selectedFoodNames}」に合う泡盛</div>`;
+
+  container.innerHTML = header + results.map(a => {
+    const matchedFoods = a.pairings
+      .filter(p => selectedFoods.has(p))
+      .map(p => foodCategories[p]?.name)
+      .filter(Boolean);
+    const matchLabel = matchedFoods.length > 0
+      ? `<span class="tag tag-taste">${matchedFoods.join('・')}に合う</span>`
+      : '';
+
+    return `
+      <div class="result-card">
+        <h3>${a.name}</h3>
+        <div class="brewery">${a.brewery}</div>
+        <div class="tags">
+          <span class="tag tag-degree">${a.degree}度</span>
+          <span class="tag tag-type">${a.type}</span>
+          ${matchLabel}
+        </div>
+        <div class="description">${a.flavorProfile}</div>
+        <div class="pairing">
+          <div class="pairing-label">ペアリングのポイント</div>
+          ${a.pairingDescription}
+        </div>
+        <div class="how-to-drink">
+          <strong>飲み方：</strong>${a.recommendedDrink}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+</script>
+</body>
+</html>
+<!-- ===== Tab 1: 好みで探す ===== -->
+<div id="tab-taste" class="tab-content active">
+  <h2 class="section-title">味わいの好みを選んでください</h2>
+  <div class="taste-map-container">
+    <svg class="taste-map-svg" viewBox="0 0 400 400">
+      <!-- Background quadrants -->
+      <rect class="taste-quadrant" data-quadrant="light-dry" x="5" y="5" width="193" height="193" rx="12" fill="#e0f2fe" />
+      <rect class="taste-quadrant" data-quadrant="light-sweet" x="202" y="5" width="193" height="193" rx="12" fill="#fef3c7" />
+      <rect class="taste-quadrant" data-quadrant="rich-dry" x="5" y="202" width="193" height="193" rx="12" fill="#ecfdf5" />
+      <rect class="taste-quadrant" data-quadrant="rich-sweet" x="202" y="202" width="193" height="193" rx="12" fill="#fce7f3" />
+
+      <!-- Axis labels -->
+      <text class="taste-axis-label" x="200" y="20" text-anchor="middle">軽やか</text>
+      <text class="taste-axis-label" x="200" y="395" text-anchor="middle">濃厚・コクあり</text>
+      <text class="taste-axis-label" x="12" y="205" text-anchor="start" transform="rotate(-90, 12, 205)">辛口・キレ</text>
+      <text class="taste-axis-label" x="392" y="200" text-anchor="end" transform="rotate(90, 392, 200)">甘口・まろやか</text>
+
+      <!-- Quadrant labels -->
+      <text class="taste-quadrant-label" x="100" y="95" fill="#1a56db">軽やか×キレ</text>
+      <text class="taste-quadrant-label" x="100" y="115" fill="#1a56db" font-size="11">スッキリ爽快系</text>
+      <text class="taste-quadrant-label" x="300" y="95" fill="#92400e">軽やか×甘口</text>
+      <text class="taste-quadrant-label" x="300" y="115" fill="#92400e" font-size="11">フルーティー系</text>
+      <text class="taste-quadrant-label" x="100" y="295" fill="#065f46">濃厚×キレ</text>
+      <text class="taste-quadrant-label" x="100" y="315" fill="#065f46" font-size="11">力強い伝統派</text>
+      <text class="taste-quadrant-label" x="300" y="295" fill="#9d174d">濃厚×甘口</text>
+      <text class="taste-quadrant-label" x="300" y="315" fill="#9d174d" font-size="11">熟成・古酒系</text>
+    </svg>
+  </div>
+
+  <h2 class="section-title">普段飲むお酒（任意）</h2>
+  <div class="drink-selector" id="drink-selector">
+    <div class="drink-chip" data-drink="beer">ビール</div>
+    <div class="drink-chip" data-drink="sake">日本酒</div>
+    <div class="drink-chip" data-drink="shochu">焼酎</div>
+    <div class="drink-chip" data-drink="wine">ワイン</div>
+    <div class="drink-chip" data-drink="whisky">ウイスキー</div>
+    <div class="drink-chip" data-drink="cocktail">カクテル</div>
+    <div class="drink-chip" data-drink="highball">ハイボール</div>
+    <div class="drink-chip" data-drink="chuhai">酎ハイ</div>
+  </div>
+
+  <button class="cta-btn" id="taste-search-btn" disabled>おすすめの泡盛を探す</button>
+
+  <div class="results-area" id="taste-results">
+    <div class="empty-state">味わいマップをタップして好みを選んでください</div>
+  </div>
+</div>
