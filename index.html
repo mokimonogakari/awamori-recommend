@@ -1,13 +1,612 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>泡盛レコメンド - あなたにぴったりの一杯を</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>泡盛 案内板</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Antique+Soft&family=Kiwi+Maru:wght@400;500&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;overflow-x:hidden}
+
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:#1a1108;
+  min-height:100vh;
+}
+
+/* WOOD TEXTURE BG */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;
+  background:
+    repeating-linear-gradient(93deg,transparent 0px,rgba(255,220,120,0.025) 1px,transparent 2px,transparent 18px),
+    repeating-linear-gradient(180deg,transparent 0px,rgba(0,0,0,0.18) 1px,transparent 2px,transparent 55px),
+    linear-gradient(160deg,#2a1a08 0%,#1a1005 40%,#221508 100%);
+  pointer-events:none;
+}
+
+.app{position:relative;z-index:1;max-width:540px;margin:0 auto;padding:0 0 40px}
+
+/* SIGNBOARD HEADER */
+.signboard{
+  background:linear-gradient(180deg,#3d2a10 0%,#2a1a08 100%);
+  border-bottom:4px solid #8b5a1a;
+  box-shadow:0 4px 0 #4a2e08,0 8px 24px rgba(0,0,0,0.6);
+  padding:22px 20px 18px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.signboard::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent 30px,rgba(255,200,80,0.035) 30px,rgba(255,200,80,0.035) 31px);
+}
+.sign-lanterns{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+.lantern{font-size:22px;animation:sway 3s ease-in-out infinite;transform-origin:top center;display:inline-block}
+.lantern:nth-child(2){animation-delay:0.5s}.lantern:nth-child(3){animation-delay:1s}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.sign-title{font-family:'Zen Antique Soft',serif;font-size:clamp(22px,5.5vw,34px);color:#f5d070;text-shadow:0 0 20px rgba(255,180,40,0.5),2px 2px 0 rgba(0,0,0,0.5);letter-spacing:0.12em;margin-bottom:4px}
+.sign-sub{font-size:12px;color:rgba(245,208,112,0.55);letter-spacing:0.2em;font-weight:700}
+
+/* PROGRESS NAILS */
+.progress-bar{display:flex;justify-content:center;align-items:center;gap:8px;padding:14px 0 8px;position:relative;z-index:1}
+.nail{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.15);transition:all 0.3s}
+.nail.done{background:#f5d070;border-color:#f5d070;box-shadow:0 0 8px rgba(245,208,112,0.5)}
+.nail.active{background:transparent;border-color:rgba(245,208,112,0.7);animation:nail-pulse 1.5s ease-in-out infinite}
+@keyframes nail-pulse{0%,100%{box-shadow:0 0 4px rgba(245,208,112,0.3)}50%{box-shadow:0 0 14px rgba(245,208,112,0.7)}}
+.nail-connector{width:24px;height:1.5px;background:rgba(255,255,255,0.08)}
+.nail-connector.done{background:rgba(245,208,112,0.4)}
+
+/* BLACKBOARD */
+.board{
+  margin:12px 12px;
+  background:
+    radial-gradient(ellipse at 30% 20%,rgba(60,90,60,0.22) 0%,transparent 55%),
+    radial-gradient(ellipse at 70% 80%,rgba(40,70,50,0.18) 0%,transparent 50%),
+    linear-gradient(160deg,#1e2e1e 0%,#172217 50%,#1a2a1a 100%);
+  border-radius:4px;
+  border:3px solid #4a3010;
+  box-shadow:inset 0 0 40px rgba(0,0,0,0.5),0 6px 30px rgba(0,0,0,0.7),4px 4px 0 #2a1a08;
+  position:relative;overflow:hidden;
+}
+.board::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;opacity:0.7;z-index:0}
+
+/* BOARD SECTIONS */
+.board-section{padding:20px 18px 24px;position:relative;z-index:1;display:none;text-align:center}
+.board-section.active{display:block;animation:chalk-in 0.4s ease forwards}
+@keyframes chalk-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CHALK TEXT */
+.chalk-heading{font-family:'Zen Antique Soft',serif;font-size:clamp(16px,4vw,21px);color:#e8e0c8;text-shadow:0 0 8px rgba(255,255,255,0.12);margin-bottom:5px;letter-spacing:0.06em;display:inline-block}
+.chalk-heading::after{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(240,220,140,0.7) 50%,transparent 100%);margin-top:5px;border-radius:1px}
+.chalk-sub{font-size:12px;color:rgba(220,210,180,0.45);font-weight:700;margin-bottom:16px;letter-spacing:0.04em}
+
+/* OPTION GRID */
+.opt-grid{display:grid;gap:10px}
+.opt-grid.cols2{grid-template-columns:1fr 1fr}
+.opt-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+.opt-grid.cols2-wide .wide-card{grid-column:1/-1}
+
+.opt-card{
+  background:rgba(255,255,255,0.04);
+  border:1.5px solid rgba(255,255,255,0.09);
+  border-radius:10px;
+  padding:16px 6px 13px;
+  cursor:pointer;text-align:center;
+  transition:all 0.18s ease;
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.opt-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.035) 0%,transparent 60%);pointer-events:none}
+.opt-card:hover{border-color:rgba(245,208,112,0.45);background:rgba(245,208,112,0.06);transform:translateY(-2px)}
+.opt-card:active{transform:scale(0.97)}
+.opt-card.selected{border-color:#f5d070;background:linear-gradient(135deg,rgba(245,208,112,0.14) 0%,rgba(245,208,112,0.04) 100%);box-shadow:0 0 18px rgba(245,208,112,0.18);transform:scale(1.03)}
+.opt-card.selected::after{content:'✓';position:absolute;top:6px;right:8px;font-size:11px;font-weight:900;color:#f5d070}
+
+.opt-icon{font-size:clamp(30px,7vw,42px);display:block;margin-bottom:7px;line-height:1}
+.opt-label{font-family:'Kiwi Maru',serif;font-size:clamp(11px,2.6vw,14px);color:#e8e0c8;font-weight:500;line-height:1.35;display:block}
+.opt-note{font-size:10px;color:rgba(220,200,140,0.45);margin-top:3px;display:block}
+
+/* LOADING */
+#loadingRow{display:none;padding:24px 0;text-align:center;position:relative;z-index:1}
+.dots{display:inline-flex;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(245,208,112,0.35);animation:dot-b 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:0.2s}.dot:nth-child(3){animation-delay:0.4s}
+@keyframes dot-b{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+/* RESULT */
+.result-board{padding:18px}
+
+.name-plate{background:linear-gradient(135deg,rgba(139,90,26,0.28) 0%,rgba(60,40,10,0.38) 100%);border:2px solid rgba(139,90,26,0.45);border-radius:10px;padding:18px 16px 14px;margin-bottom:13px;text-align:center;box-shadow:inset 0 1px 0 rgba(255,220,100,0.08)}
+.name-plate-eyebrow{font-size:10px;font-weight:700;color:rgba(245,208,112,0.45);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px}
+.name-plate-name{font-family:'Zen Antique Soft',serif;font-size:clamp(24px,6vw,38px);color:#f5e8b0;text-shadow:0 0 20px rgba(245,220,100,0.25),2px 2px 0 rgba(0,0,0,0.5);letter-spacing:0.06em;line-height:1.2;margin-bottom:5px}
+.name-plate-brewery{font-size:12px;color:rgba(220,200,160,0.5)}
+
+.tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px}
+.tag{padding:6px 13px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:0.04em}
+.tag.degree{background:rgba(26,127,168,0.18);color:#7dd4f0;border:1px solid rgba(74,184,224,0.22)}
+.tag.type{background:rgba(212,168,50,0.13);color:#f0cc60;border:1px solid rgba(212,168,50,0.28)}
+
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
+.meter-box{background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px}
+.meter-label{font-size:10px;font-weight:700;color:rgba(220,200,150,0.5);letter-spacing:0.1em;margin-bottom:6px}
+.meter-track{height:7px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-bottom:4px}
+.meter-fill{height:100%;border-radius:4px;width:0;transition:width 0.9s cubic-bezier(0.22,1,0.36,1)}
+.meter-fill.rich{background:linear-gradient(90deg,#c06020,#e08030)}
+.meter-fill.sweet{background:linear-gradient(90deg,#b04080,#e06080)}
+.meter-value{font-size:10px;color:rgba(220,200,140,0.38);text-align:right}
+
+.section-title{font-family:'Zen Antique Soft',serif;font-size:12px;color:rgba(245,220,140,0.5);letter-spacing:0.12em;margin-bottom:8px}
+.chalk-divider{border:none;border-top:1px dashed rgba(255,255,255,0.1);margin:13px 0}
+
+.method-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0}
+.method-tile{background:rgba(245,208,112,0.05);border:1px solid rgba(245,208,112,0.13);border-radius:8px;padding:12px 6px 10px;text-align:center}
+.method-icon{font-size:20px;display:block;margin-bottom:5px}
+.method-name{font-size:11px;font-weight:700;color:#e8d890;display:block;margin-bottom:2px}
+.method-note{font-size:9px;color:rgba(220,200,130,0.42);line-height:1.5}
+
+.pairing-row{display:flex;flex-wrap:wrap;gap:7px}
+.pairing-chip{padding:7px 12px;background:rgba(58,173,108,0.09);border:1px solid rgba(58,173,108,0.18);border-radius:20px;font-size:12px;font-weight:700;color:#7dd4a8}
+
+.alts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.alt-tile{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.18s}
+.alt-tile:hover{border-color:rgba(245,208,112,0.3);background:rgba(245,208,112,0.05)}
+.alt-tile-icon{font-size:18px;display:block;margin-bottom:5px}
+.alt-tile-name{font-size:12px;font-weight:700;color:#e8d890;margin-bottom:3px}
+.alt-tile-note{font-size:10px;color:rgba(200,185,145,0.45);line-height:1.4}
+
+/* RESET */
+.reset-row{text-align:center;padding:10px 0 0;position:relative;z-index:1}
+.reset-link{background:none;border:none;color:rgba(220,200,140,0.38);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;text-decoration:underline;font-family:'Noto Sans JP',sans-serif}
+.reset-link:hover{color:rgba(245,208,112,0.65)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="signboard">
+    <div class="sign-lanterns">
+      <span class="lantern">🏮</span>
+      <span class="lantern">🪸</span>
+      <span class="lantern">🏮</span>
+    </div>
+    <div class="sign-title">泡盛 案内板</div>
+    <div class="sign-sub">AWAMORI GUIDE — あなたの一杯を探す</div>
+  </div>
+
+  <!-- NAILS PROGRESS -->
+  <div class="progress-bar">
+    <div class="nail active" id="nail0"></div>
+    <div class="nail-connector" id="conn0"></div>
+    <div class="nail" id="nail1"></div>
+    <div class="nail-connector" id="conn1"></div>
+    <div class="nail" id="nail2"></div>
+    <div class="nail-connector" id="conn2"></div>
+    <div class="nail" id="nail3"></div>
+  </div>
+
+  <!-- BLACKBOARD -->
+  <div class="board">
+
+    <!-- STEP 0 : RICHNESS -->
+    <div class="board-section active" id="step0">
+      <div class="chalk-heading">好きな口当たりは？</div>
+      <div class="chalk-sub">まずはざっくりと</div>
+      <div class="opt-grid cols2">
+
+        <!-- 軽やか：羽根アイコン -->
+        <div class="opt-card" onclick="pick(0,'rich',2,this)">
+          <span class="opt-icon" style="font-size:clamp(36px,8vw,48px);display:flex;justify-content:center;margin-bottom:7px;filter:brightness(0) invert(1)">🪶</span>
+          <span class="opt-label">軽やか<br>すっきり</span>
+          <span class="opt-note">スルっと飲める</span>
+        </div>
+
+        <!-- 濃厚：ピクトグラム — 泡盛の甕 -->
+        <div class="opt-card" onclick="pick(0,'rich',4,this)">
+          <span class="opt-icon" style="display:flex;justify-content:center;margin-bottom:7px">
+            <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g stroke="rgba(235,230,215,0.92)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <!-- 胴体（丸くどっしり、底に向かって絞れる） -->
+                <path d="M6 26 C4 34 5 44 10 50 C14 54 18 56 26 56 C34 56 38 54 42 50 C47 44 48 34 46 26 C42 18 34 16 26 16 C18 16 10 18 6 26 Z" stroke-width="2.2"/>
+                <!-- 底のフラット（短め・絞れた感じ） -->
+                <line x1="16" y1="56" x2="36" y2="56" stroke-width="2.2"/>
+                <!-- 胴下部の絞り線（底へ向かうカーブ） -->
+                <path d="M10 50 C12 54 16 56 16 56" stroke-width="2.2"/>
+                <path d="M42 50 C40 54 36 56 36 56" stroke-width="2.2"/>
+                <!-- 首（細いくびれ） -->
+                <path d="M19 16 C19 12 21 10 26 10 C31 10 33 12 33 16" stroke-width="2"/>
+                <!-- 口の縁 -->
+                <line x1="18" y1="10" x2="34" y2="10" stroke-width="2.2"/>
+                <!-- 布のたれ（左） -->
+                <path d="M18 10 C14 12 11 16 12 20 C13 23 16 22 17 18" stroke-width="1.6"/>
+                <!-- 布のたれ（右） -->
+                <path d="M34 10 C38 12 41 16 40 20 C39 23 36 22 35 18" stroke-width="1.6"/>
+                <!-- 布の中央ふくらみ -->
+                <path d="M17 10 C20 14 26 15 26 15 C26 15 32 14 35 10" stroke-width="1.6"/>
+                <!-- 縄 -->
+                <path d="M17 12 C20 13 26 14 32 13 C34 12 35 11 35 11" stroke-width="1.3" stroke-dasharray="2 1.5"/>
+                <!-- 縄の結び目 -->
+                <circle cx="15" cy="13" r="1.8" stroke-width="1.4"/>
+                <circle cx="37" cy="13" r="1.8" stroke-width="1.4"/>
+                <!-- 胴のハイライト -->
+                <path d="M8 34 C9 42 12 50 16 54" stroke-width="1" stroke="rgba(235,230,215,0.3)"/>
+              </g>
+            </svg>
+          </span>
+          <span class="opt-label">コクあり<br>濃厚</span>
+          <span class="opt-note">味わい深い</span>
+        </div>
+
+      </div>
+      <div class="opt-grid" style="margin-top:10px">
+        <div class="opt-card" onclick="pick(0,'rich',3,this)">
+          <span class="opt-icon" style="display:flex;justify-content:center;margin-bottom:7px">
+            <svg width="60" height="58" viewBox="0 0 60 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g stroke="rgba(235,230,215,0.92)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <!-- 支点の丸 -->
+                <circle cx="30" cy="9" r="4" stroke-width="2"/>
+                <!-- 支柱 -->
+                <line x1="30" y1="13" x2="30" y2="50" stroke-width="2"/>
+                <!-- 台座 -->
+                <line x1="18" y1="50" x2="42" y2="50" stroke-width="2.2"/>
+                <!-- ビーム左 -->
+                <line x1="30" y1="13" x2="11" y2="22" stroke-width="2"/>
+                <!-- ビーム右 -->
+                <line x1="30" y1="13" x2="49" y2="22" stroke-width="2"/>
+
+                <!-- 左：三角吊り具（頂点=11,22 → 左端=5,34 右端=17,34） -->
+                <line x1="11" y1="22" x2="5"  y2="34" stroke-width="1.7"/>
+                <line x1="11" y1="22" x2="17" y2="34" stroke-width="1.7"/>
+                <!-- 左：皿（5,34 〜 17,34 の幅に合わせたお椀） -->
+                <line x1="5"  y1="34" x2="17" y2="34" stroke-width="1.8"/>
+                <path d="M5 34 Q11 41 17 34" stroke-width="1.8"/>
+
+                <!-- 右：三角吊り具（頂点=49,22 → 左端=43,34 右端=55,34） -->
+                <line x1="49" y1="22" x2="43" y2="34" stroke-width="1.7"/>
+                <line x1="49" y1="22" x2="55" y2="34" stroke-width="1.7"/>
+                <!-- 右：皿（43,34 〜 55,34 の幅に合わせたお椀） -->
+                <line x1="43" y1="34" x2="55" y2="34" stroke-width="1.8"/>
+                <path d="M43 34 Q49 41 55 34" stroke-width="1.8"/>
+              </g>
+            </svg>
+          </span>
+          <span class="opt-label">どちらでもない・わからない</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 : SWEETNESS -->
+    <div class="board-section" id="step1">
+      <div class="chalk-heading">甘さはどのくらい？</div>
+      <div class="chalk-sub">同じ銘柄でも全然ちがいます</div>
+      <div class="opt-grid cols3">
+        <div class="opt-card" onclick="pick(1,'sweet',2,this)">
+          <span class="opt-icon">🍋</span>
+          <span class="opt-label">辛口<br>ドライ</span>
+          <span class="opt-note">キレがある</span>
+        </div>
+        <div class="opt-card" onclick="pick(1,'sweet',3,this)">
+          <span class="opt-icon">🌾</span>
+          <span class="opt-label">中間<br>バランス</span>
+          <span class="opt-note">オールマイティ</span>
+        </div>
+        <div class="opt-card" onclick="pick(1,'sweet',4,this)">
+          <span class="opt-icon">🍑</span>
+          <span class="opt-label">甘口<br>まろやか</span>
+          <span class="opt-note">やわらかい</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 : FOOD -->
+    <div class="board-section" id="step2">
+      <div class="chalk-heading">今夜の肴は？</div>
+      <div class="chalk-sub">料理に合う一本をご提案</div>
+      <div class="opt-grid cols3">
+        <div class="opt-card" onclick="pick(2,'food','nikomi_okinawa',this)">
+          <span class="opt-icon">🍖</span>
+          <span class="opt-label">煮込み<br>沖縄料理</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','kaisen',this)">
+          <span class="opt-icon">🐟</span>
+          <span class="opt-label">海鮮<br>刺身</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','steak',this)">
+          <span class="opt-icon">🥩</span>
+          <span class="opt-label">ステーキ<br>肉料理</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','spicy',this)">
+          <span class="opt-icon">🌶️</span>
+          <span class="opt-label">スパイシー<br>カレー系</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','cheese',this)">
+          <span class="opt-icon">🧀</span>
+          <span class="opt-label">チーズ<br>前菜</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','izakaya',this)">
+          <span class="opt-icon">🍢</span>
+          <span class="opt-label">居酒屋<br>おつまみ</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','dessert',this)">
+          <span class="opt-icon">🍫</span>
+          <span class="opt-label">デザート<br>と一緒に</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','italian',this)">
+          <span class="opt-icon">🍝</span>
+          <span class="opt-label">洋食<br>イタリアン</span>
+        </div>
+        <div class="opt-card" onclick="pick(2,'food','none',this)">
+          <span class="opt-icon">✨</span>
+          <span class="opt-label">特になし</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 : DRINK -->
+    <div class="board-section" id="step3">
+      <div class="chalk-heading">普段よく飲むのは？</div>
+      <div class="chalk-sub">同じ感覚で楽しめる銘柄を選びます</div>
+      <div class="opt-grid cols3">
+        <div class="opt-card" onclick="pick(3,'drink','beer',this)">
+          <span class="opt-icon">🍺</span>
+          <span class="opt-label">ビール</span>
+        </div>
+        <div class="opt-card" onclick="pick(3,'drink','sake',this)">
+          <span class="opt-icon">🍶</span>
+          <span class="opt-label">日本酒</span>
+        </div>
+        <div class="opt-card" onclick="pick(3,'drink','shochu',this)">
+          <span class="opt-icon">🥃</span>
+          <span class="opt-label">焼酎</span>
+        </div>
+        <div class="opt-card" onclick="pick(3,'drink','wine',this)">
+          <span class="opt-icon">🍷</span>
+          <span class="opt-label">ワイン</span>
+        </div>
+        <div class="opt-card" onclick="pick(3,'drink','whisky',this)">
+          <span class="opt-icon">🥃</span>
+          <span class="opt-label">ウイスキー</span>
+        </div>
+        <div class="opt-card" onclick="pick(3,'drink','cocktail',this)">
+          <span class="opt-icon">🍹</span>
+          <span class="opt-label">カクテル<br>ハイボール</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 : RESULT (filled by JS) -->
+    <div class="board-section" id="step4"></div>
+
+    <!-- LOADING -->
+    <div id="loadingRow">
+      <div class="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+
+  </div><!-- /board -->
+
+  <div class="reset-row">
+    <button class="reset-link" onclick="resetAll()">🔄 最初から選びなおす</button>
+  </div>
+</div>
+
+<script>
+const AWAMORI=[
+  {id:1,name:"残波（白）",brewery:"比嘉酒造",degree:25,type:"一般酒",richness:2,sweetness:3,
+   flavor:"フルーティーで透明感のある味わい。泡盛初心者に最適",
+   pairing:"ゴーヤーチャンプルーやもずく天ぷらなど、さっぱりした沖縄料理と好相性",
+   methods:[{icon:"🥤",name:"炭酸割り",note:"爽快感MAX"},{icon:"🍋",name:"シークヮーサー割り",note:"南国の香り"},{icon:"🧊",name:"ロック",note:"キレが出る"}],
+   pairingEmoji:["🥬","🍤","🌿"],pairingLabels:["炒め物","揚げ物","沖縄料理"],
+   pairingCats:["itamemono","agemono","okinawa","izakaya"],similar:["beer","chuhai","cocktail"]},
+  {id:2,name:"残波（黒）",brewery:"比嘉酒造",degree:30,type:"一般酒",richness:4,sweetness:2,
+   flavor:"力強いコクとキレの良さ。伝統的な泡盛の味わい",
+   pairing:"ラフテーやソーキなどの豚肉煮込み料理と抜群の相性",
+   methods:[{icon:"🧊",name:"ロック",note:"旨味が引き立つ"},{icon:"💧",name:"水割り",note:"7:3が黄金比"},{icon:"♨️",name:"お湯割り",note:"香りが広がる"}],
+   pairingEmoji:["🍖","🥩","🍲"],pairingLabels:["煮込み","ステーキ","鍋料理"],
+   pairingCats:["nikomi","steak","okinawa","nabe"],similar:["shochu","whisky"]},
+  {id:3,name:"菊之露ブラウン",brewery:"菊之露酒造",degree:30,type:"一般酒",richness:3,sweetness:3,
+   flavor:"独特の風味と甘みのバランス。スタンダードな定番銘柄",
+   pairing:"沖縄料理全般に合う万能な一本",
+   methods:[{icon:"💧",name:"水割り",note:"毎日の晩酌に"},{icon:"♨️",name:"お湯割り",note:"冬にぴったり"},{icon:"🧊",name:"ロック",note:"シンプルに"}],
+   pairingEmoji:["🌿","🍢","🍲"],pairingLabels:["沖縄料理","おつまみ","鍋料理"],
+   pairingCats:["nikomi","okinawa","izakaya","nabe"],similar:["sake","shochu"]},
+  {id:4,name:"瑞泉",brewery:"瑞泉酒造",degree:30,type:"一般酒",richness:3,sweetness:2,
+   flavor:"首里の伝統を受け継ぐキレのある味わい。食中酒に最適",
+   pairing:"海ぶどうやもずく酢、刺身など海鮮系との相性が抜群",
+   methods:[{icon:"💧",name:"水割り",note:"食事と共に"},{icon:"🍋",name:"シークヮーサー割り",note:"さっぱり爽快"},{icon:"🧊",name:"ロック",note:"キレを楽しむ"}],
+   pairingEmoji:["🐟","🦑","🌊"],pairingLabels:["刺身","海鮮","居酒屋"],
+   pairingCats:["kaisen","izakaya","okinawa","itamemono"],similar:["sake","beer"]},
+  {id:5,name:"久米島の久米仙",brewery:"久米島の久米仙",degree:30,type:"一般酒",richness:2,sweetness:3,
+   flavor:"柔らかな口当たりと湧水由来の清涼感",
+   pairing:"刺身やソーメンチャンプルーなど、あっさり系の料理に合う",
+   methods:[{icon:"💧",name:"水割り",note:"やさしく割って"},{icon:"🥤",name:"炭酸割り",note:"清涼感UP"},{icon:"🧊",name:"ロック",note:"清澄な甘み"}],
+   pairingEmoji:["🐟","🌿","🧀"],pairingLabels:["海鮮","炒め物","チーズ"],
+   pairingCats:["kaisen","itamemono","izakaya","cheese"],similar:["sake","wine","beer"]},
+  {id:6,name:"暖流",brewery:"神村酒造",degree:30,type:"樽貯蔵",richness:4,sweetness:4,
+   flavor:"オーク樽由来のバニラ香と琥珀色。ウイスキーのような風格",
+   pairing:"ステーキ、燻製料理、ローストビーフと最高の組み合わせ",
+   methods:[{icon:"🥤",name:"暖ボール",note:"ハイボールスタイル"},{icon:"🧊",name:"ロック",note:"香り深く"},{icon:"🥃",name:"ストレート",note:"樽の深みを"}],
+   pairingEmoji:["🥩","🧀","🍳"],pairingLabels:["ステーキ","チーズ","燻製"],
+   pairingCats:["steak","cheese","italian","dessert"],similar:["whisky","highball"]},
+  {id:7,name:"菊之露VIPゴールド",brewery:"菊之露酒造",degree:30,type:"古酒",richness:4,sweetness:4,
+   flavor:"洗練された甘みとプレミアム感。長期熟成の深い味わい",
+   pairing:"ラフテーなど濃厚な煮込み料理と古酒の熟成香が同調する",
+   methods:[{icon:"🧊",name:"ロック",note:"プレミアムに"},{icon:"🥃",name:"ストレート",note:"熟成をそのまま"},{icon:"💧",name:"少量の水",note:"香りが開く"}],
+   pairingEmoji:["🍖","🧀","🍫"],pairingLabels:["煮込み","チーズ","デザート"],
+   pairingCats:["nikomi","nabe","cheese","dessert"],similar:["whisky","wine"]},
+  {id:8,name:"松藤（荒濾過）",brewery:"崎山酒造廠",degree:30,type:"一般酒",richness:5,sweetness:2,
+   flavor:"老麹由来の深いコクとまろやかさ。荒濾過のパンチある味わい",
+   pairing:"グラタンやオイル系料理、スパイシーな料理のオイルの重さを流す",
+   methods:[{icon:"🧊",name:"ロック",note:"コクを堪能"},{icon:"💧",name:"水割り",note:"飲みやすく"},{icon:"♨️",name:"お湯割り",note:"旨味が増す"}],
+   pairingEmoji:["🍝","🌶️","🥩"],pairingLabels:["イタリアン","スパイシー","肉料理"],
+   pairingCats:["italian","spicy","steak","okinawa"],similar:["shochu","whisky"]},
+  {id:9,name:"海人",brewery:"まさひろ酒造",degree:30,type:"一般酒",richness:2,sweetness:2,
+   flavor:"スッキリとした後味と華やかな香り",
+   pairing:"グルクン唐揚げや海鮮料理とスッキリ楽しめる",
+   methods:[{icon:"🥤",name:"炭酸割り",note:"最もスッキリ"},{icon:"💧",name:"水割り",note:"食中酒に"},{icon:"🧊",name:"ロック",note:"香りを感じる"}],
+   pairingEmoji:["🐟","🍤","🌊"],pairingLabels:["海鮮","揚げ物","居酒屋"],
+   pairingCats:["kaisen","agemono","izakaya","itamemono"],similar:["beer","highball","chuhai"]},
+  {id:10,name:"琉球王朝",brewery:"多良川",degree:30,type:"古酒",richness:3,sweetness:4,
+   flavor:"バランスの取れた香りとコク。古酒ならではのまろやかさ",
+   pairing:"あぐー豚のしゃぶしゃぶや沖縄の伝統料理との調和",
+   methods:[{icon:"🧊",name:"ロック",note:"まろやかに"},{icon:"💧",name:"水割り",note:"バランス良く"},{icon:"🥃",name:"ストレート",note:"古酒を純粋に"}],
+   pairingEmoji:["🍖","🍲","🧀"],pairingLabels:["煮込み","鍋料理","チーズ"],
+   pairingCats:["nikomi","okinawa","nabe","cheese"],similar:["sake","wine","whisky"]},
+  {id:11,name:"芳醇浪漫 守禮",brewery:"神谷酒造所",degree:35,type:"一般酒",richness:5,sweetness:3,
+   flavor:"選び抜かれた酵母による豊かな香り。味のしっかりした料理と調和",
+   pairing:"ラフテーや足てびちなどの煮物料理に最適",
+   methods:[{icon:"🧊",name:"ロック",note:"これ一択"},{icon:"💧",name:"少量の水",note:"香りが広がる"},{icon:"♨️",name:"お湯割り",note:"深みが出る"}],
+   pairingEmoji:["🍖","🌿","🥩"],pairingLabels:["煮込み","沖縄料理","肉料理"],
+   pairingCats:["nikomi","okinawa","steak","nabe"],similar:["shochu","whisky"]},
+  {id:12,name:"伊是名島 5年古酒",brewery:"伊是名酒造所",degree:30,type:"古酒",richness:3,sweetness:4,
+   flavor:"熟成されたまろやかなのど越し。深みのある味わい",
+   pairing:"つけもずくなど、繊細な味付けの料理と響き合う",
+   methods:[{icon:"💧",name:"水割り",note:"繊細に"},{icon:"🥃",name:"ストレート",note:"熟成をそのまま"},{icon:"🧊",name:"ロック",note:"ゆっくりと"}],
+   pairingEmoji:["🐟","🌿","🧀"],pairingLabels:["海鮮","沖縄料理","チーズ"],
+   pairingCats:["kaisen","okinawa","izakaya","cheese"],similar:["sake","wine"]},
+  {id:13,name:"まさひろオキナワジン",brewery:"まさひろ酒造",degree:47,type:"ジン（泡盛ベース）",richness:3,sweetness:1,
+   flavor:"泡盛ベースのクラフトジン。ボタニカルの爽快な香り",
+   pairing:"スパイスカレーやタコスなどスパイシー料理と「琉球メキシカン」の融合",
+   methods:[{icon:"🍹",name:"ジントニック",note:"定番"},{icon:"🥤",name:"炭酸割り",note:"爽快感MAX"},{icon:"🍋",name:"ライム添え",note:"香りを楽しむ"}],
+   pairingEmoji:["🌶️","🍝","🧀"],pairingLabels:["スパイシー","イタリアン","チーズ"],
+   pairingCats:["spicy","italian","cheese","kaisen"],similar:["cocktail","highball","beer"]},
+  {id:14,name:"くら",brewery:"ヘリオス酒造",degree:25,type:"樽貯蔵",richness:3,sweetness:4,
+   flavor:"樫樽熟成の琥珀色。ウイスキーのようなバニラ香だが飲みやすい",
+   pairing:"グリル料理やチョコレートデザートと相性抜群",
+   methods:[{icon:"🥤",name:"くらハイボール",note:"大人気"},{icon:"🧊",name:"ロック",note:"バニラ香"},{icon:"🥃",name:"ストレート",note:"25度で飲みやすい"}],
+   pairingEmoji:["🥩","🍫","🧀"],pairingLabels:["ステーキ","デザート","チーズ"],
+   pairingCats:["steak","dessert","cheese","italian"],similar:["whisky","highball","cocktail"]},
+  {id:15,name:"OKINAWA ISLAND BLUE",brewery:"久米仙酒造",degree:43,type:"古酒",richness:4,sweetness:3,
+   flavor:"カクテルベースとして最適。クラシックカクテルのアレンジに",
+   pairing:"ゴッドファーザー風カクテルでデザートと。ステーキにも",
+   methods:[{icon:"🍹",name:"カクテルベース",note:"個性が光る"},{icon:"🧊",name:"ロック",note:"43度の存在感"},{icon:"🥃",name:"ストレート",note:"古酒の深み"}],
+   pairingEmoji:["🧀","🍫","🥩"],pairingLabels:["チーズ","デザート","ステーキ"],
+   pairingCats:["cheese","dessert","steak","italian"],similar:["whisky","cocktail"]}
+];
+
+let S={rich:null,sweet:null,food:null,drink:null};
+
+function pick(step,key,val,el){
+  el.closest('.opt-grid').querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected'));
+  // handle wide card case
+  el.classList.add('selected');
+  S[key]=val;
+  setTimeout(()=>advance(step),360);
+}
+
+function advance(fromStep){
+  const next=fromStep+1;
+  setNail(fromStep,'done');
+  if(next<=3) setNail(next,'active');
+
+  const loading=document.getElementById('loadingRow');
+  loading.style.display='block';
+
+  setTimeout(()=>{
+    loading.style.display='none';
+    if(next<=3) showStep(next);
+    else showResult();
+  }, next===4?1100:450);
+}
+
+function showStep(n){
+  document.querySelectorAll('.board-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function setNail(i,cls){
+  const nail=document.getElementById('nail'+i);
+  if(!nail)return;
+  nail.className='nail '+cls;
+  if(i<3&&cls==='done'){
+    const c=document.getElementById('conn'+i);
+    if(c) c.classList.add('done');
+  }
+}
+
+function showResult(){
+  setNail(3,'done');
+  const scores=AWAMORI.map(a=>{
+    let s=0;
+    s+=5-Math.abs(a.richness-(S.rich||3));
+    s+=5-Math.abs(a.sweetness-(S.sweet||3));
+    if(S.food&&S.food!=='none'){
+      const fm={nikomi_okinawa:['nikomi','okinawa'],kaisen:['kaisen'],steak:['steak'],
+                spicy:['spicy'],cheese:['cheese'],italian:['italian'],
+                izakaya:['izakaya','agemono'],dessert:['dessert']};
+      const keys=fm[S.food]||[];
+      if(keys.some(k=>a.pairingCats.includes(k))) s+=3;
+    }
+    if(S.drink&&S.drink!=='none'){
+      if(a.similar.includes(S.drink)) s+=2;
+      if(S.drink==='cocktail'&&(a.similar.includes('highball')||a.similar.includes('chuhai'))) s+=1;
+    }
+    return{...a,score:s};
+  }).sort((a,b)=>b.score-a.score);
+
+  renderResult(scores[0], scores.slice(1,3));
+  showStep(4);
+  // Trigger meter animation after render
+  setTimeout(()=>{
+    const fills=document.querySelectorAll('.meter-fill');
+    fills.forEach(f=>f.style.width=f.dataset.w+'%');
+  },50);
+}
+
+function renderResult(a,alts){
+  const rw=Math.round((a.richness/5)*100);
+  const sw=Math.round((a.sweetness/5)*100);
+  const rLabel=['','薄め','やや薄','中間','やや濃','濃い'][a.richness];
+  const sLabel=['','辛口','やや辛','中間','やや甘','甘口'][a.sweetness];
+
+  const pHtml=a.pairingEmoji.map((e,i)=>`<span class="pairing-chip">${e} ${a.pairingLabels[i]}</span>`).join('');
+  const mHtml=a.methods.map(m=>`<div class="method-tile"><span class="method-icon">${m.icon}</span><span class="method-name">${m.name}</span><span class="method-note">${m.note}</span></div>`).join('');
+  const aHtml=alts.map(b=>`<div class="alt-tile"><span class="alt-tile-icon">🍶</span><div class="alt-tile-name">${b.name}</div><div class="alt-tile-note">${b.flavor.slice(0,34)}…</div></div>`).join('');
+
+  document.getElementById('step4').innerHTML=`
+    <div class="result-board">
+      <div class="name-plate">
+        <div class="name-plate-eyebrow">Your Perfect Awamori</div>
+        <div class="name-plate-name">${a.name}</div>
+        <div class="name-plate-brewery">${a.brewery}</div>
+      </div>
+      <div class="tag-row">
+        <span class="tag degree">🔢 ${a.degree}度</span>
+        <span class="tag type">🏷 ${a.type}</span>
+      </div>
+      <div class="meters">
+        <div class="meter-box">
+          <div class="meter-label">コクの強さ</div>
+          <div class="meter-track"><div class="meter-fill rich" data-w="${rw}" style="width:0%"></div></div>
+          <div class="meter-value">${rLabel}</div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label">甘さ</div>
+          <div class="meter-track"><div class="meter-fill sweet" data-w="${sw}" style="width:0%"></div></div>
+          <div class="meter-value">${sLabel}</div>
+        </div>
+      </div>
+      <hr class="chalk-divider">
+      <div class="section-title">飲み方</div>
+      <div class="method-row">${mHtml}</div>
+      <hr class="chalk-divider">
+      <div class="section-title">合う肴</div>
+      <div class="pairing-row">${pHtml}</div>
+      ${alts.length?`<hr class="chalk-divider"><div class="section-title">他のおすすめ</div><div class="alts-grid">${aHtml}</div>`:''}
+    </div>`;
+}
+
+function resetAll(){
+  S={rich:null,sweet:null,food:null,drink:null};
+  for(let i=0;i<4;i++) document.getElementById('nail'+i).className='nail'+(i===0?' active':'');
+  for(let i=0;i<3;i++) document.getElementById('conn'+i).className='nail-connector';
+  document.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected'));
+  showStep(0);
+}
+</script>
+</body>
 </html>
