@@ -34,10 +34,16 @@ npx serve .
 
 ```
 awamori-recommend/
-├── index.html          # アプリ本体（HTML + CSS + JS 一体型）
+├── index.html              # HTMLテンプレート（UIレイアウトのみ）
+├── css/
+│   └── style.css           # 全スタイル定義
+├── js/
+│   └── app.js              # アプリロジック + CSVパーサー
+├── data/
+│   └── awamori.csv         # 泡盛データベース（15銘柄）
 ├── docs/
-│   ├── specification.md   # 仕様書
-│   └── infrastructure.md  # インフラ構成図
+│   ├── specification.md    # 仕様書（CSV仕様含む）
+│   └── infrastructure.md   # インフラ構成図
 └── README.md
 ```
 
